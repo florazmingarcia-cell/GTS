@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="description" content="App educativa para 6° grado - Comprensión lectora y Pensamiento lógico-matemático">
+    <title>🧠 BrainQuest - 6° Grado</title>
+    <style>
+        /* ===== VARIABLES CSS ===== */
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #f59e0b;
+            --secondary-dark: #d97706;
+            --success: #10b981;
+            --error: #ef4444;
+            --info: #3b82f6;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+            --radius: 16px;
+            --radius-sm: 12px;
+        }
+
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { font-size: 16px; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            background: #e2e8f0;
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Tipografía Responsiva */
+        .content-text {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 1.25rem;
+            line-height: 1.6;
+            text-align: justify;
+            color: var(--text);
+        }
+        .content-title {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 1.6rem;
+            font-weight: bold;
+            text-align: center;
+            color: var(--text);
+            margin-bottom: 16px;
+        }
+        .content-subtitle {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-align: center;
+            color: var(--primary-dark);
+            margin-bottom: 12px;
+        }
+
+        /* ===== ANIMACIONES ===== */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+        @keyframes confetti { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+        @keyframes glow { 0%, 100% { box-shadow: 0 0 5px var(--success); } 50% { box-shadow: 0 0 15px var(--success); } }
+        @keyframes starSpin { 0% { transform: rotate(0deg) scale(0); } 100% { transform: rotate(360deg) scale(1); } }
+
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        .bounce { animation: bounce 0.6s ease infinite; }
+        .pulse { animation: pulse 0.8s ease infinite; }
+        .shake { animation: shake 0.4s ease; }
+        .float { animation: float 3s ease-in-out infinite; }
+
+        /* ===== CONFETTI ===== */
+        .confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+        .confetti-piece { position: absolute; width: 8px; height: 8px; top: 100%; animation: confetti 2s ease-out forwards; }
+
+        /* ===== LAYOUT RESPONSIVO INTELIGENTE ===== */
+        .app-container { 
+            width: 100%; 
+            max-width: 650px; 
+            margin: 0 auto; 
+            min-height: 100vh; 
+            position: relative; 
+            background: var(--bg);
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .screen { display: none; padding: 20px; min-height: 100vh; animation: fadeIn 0.3s ease-out; }
+        .screen.active { display: block; }
+
+        /* ===== HEADER ===== */
+        .app-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            padding: 16px 20px;
+            border-radius: 0 0 var(--radius) var(--radius);
+            box-shadow: var(--shadow-lg);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .app-logo { font-size: 22px; font-weight: bold; color: white; display: flex; align-items: center; gap: 8px; }
+        .app-logo span { font-size: 26px; }
+        .user-badge {
+            background: rgba(255,255,255,0.2); backdrop-filter: blur(10px);
+            padding: 4px 12px; border-radius: 20px; color: white; font-size: 14px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .progress-bar-container { background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden; }
+        .progress-bar {
+            height: 100%; background: linear-gradient(90deg, #fbbf24, #f59e0b);
+            border-radius: 4px; transition: width 0.5s ease;
+        }
+        .progress-info { display: flex; justify-content: space-between; color: rgba(255,255,255,0.9); font-size: 12px; margin-top: 6px; }
+
+        /* ===== BOTONES ===== */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 20px; border: none; border-radius: var(--radius-sm);
+            font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+            width: 100%; margin-bottom: 10px; font-family: inherit;
+        }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+        .btn-primary:active { transform: scale(0.98); }
+        .btn-secondary { background: linear-gradient(135deg, var(--secondary), var(--secondary-dark)); color: white; }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-outline:hover { background: var(--primary); color: white; }
+        .btn-ghost { background: rgba(99,102,241,0.1); color: var(--primary); }
+        .btn-small { padding: 6px 12px; font-size: 13px; width: auto; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+        /* ===== CARDS ===== */
+        .card {
+            background: var(--card); border-radius: var(--radius); padding: 18px;
+            box-shadow: var(--shadow); margin-bottom: 16px; border: 1px solid var(--border);
+        }
+        .card-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; }
+        .card-gradient-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border: none; }
+
+        /* ===== LEVEL MAP ===== */
+        .level-map { display: flex; flex-direction: column; gap: 10px; padding: 5px 0; }
+        .level-node {
+            display: flex; align-items: center; gap: 14px; padding: 14px;
+            background: var(--card); border-radius: var(--radius-sm);
+            border: 2px solid var(--border); transition: all 0.2s; cursor: pointer;
+            position: relative; overflow: hidden;
+        }
+        .level-node::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--border); }
+        .level-node.unlocked::before { background: var(--primary); }
+        .level-node.completed::before { background: var(--success); }
+        .level-node.locked { opacity: 0.6; cursor: not-allowed; }
+        .level-node:not(.locked):hover { transform: translateX(4px); border-color: var(--primary); }
+        .level-icon { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+        .level-icon.basic { background: #dbeafe; }
+        .level-icon.intermediate { background: #fef3c7; }
+        .level-icon.advanced { background: #fee2e2; }
+        .level-icon.expert { background: #f3e8ff; }
+        .level-info { flex: 1; }
+        .level-name { font-weight: bold; font-size: 15px; margin-bottom: 2px; }
+        .level-desc { font-size: 12px; color: var(--text-light); }
+        .level-status { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+
+        /* ===== QUIZ OPTIONS ===== */
+        .option-btn {
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px; background: var(--card); border: 2px solid var(--border);
+            border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s;
+            width: 100%; margin-bottom: 8px; text-align: left; font-family: inherit; font-size: 15px;
+        }
+        .option-btn:hover:not(:disabled) { border-color: var(--primary); background: #eef2ff; }
+        .option-btn.selected { border-color: var(--primary); background: #eef2ff; }
+        .option-btn.correct { border-color: var(--success); background: #d1fae5; animation: glow 0.5s ease; }
+        .option-btn.wrong { border-color: var(--error); background: #fee2e2; animation: shake 0.4s ease; }
+        .option-letter {
+            width: 28px; height: 28px; border-radius: 50%; background: var(--primary);
+            color: white; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 13px; flex-shrink: 0;
+        }
+        .option-btn.correct .option-letter { background: var(--success); }
+        .option-btn.wrong .option-letter { background: var(--error); }
+
+        /* ===== FEEDBACK MODAL ===== */
+        .feedback-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(3px);
+            display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px;
+        }
+        .feedback-overlay.active { display: flex; }
+        .feedback-modal {
+            background: var(--card); border-radius: var(--radius); padding: 24px;
+            max-width: 380px; width: 100%; text-align: center; box-shadow: var(--shadow-lg);
+        }
+        .feedback-icon { font-size: 56px; margin-bottom: 8px; }
+        .feedback-title { font-size: 20px; font-weight: bold; margin-bottom: 6px; }
+        .feedback-message { font-size: 15px; color: var(--text-light); margin-bottom: 16px; line-height: 1.5; }
+        .feedback-hint { background: #fef3c7; border-left: 4px solid var(--secondary); padding: 10px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; text-align: left; font-size: 13px; margin-bottom: 12px; }
+        .feedback-extra { background: #dbeafe; border-radius: var(--radius-sm); padding: 10px; font-size: 13px; color: var(--primary-dark); margin-bottom: 12px; }
+
+        /* ===== STARS & STATS ===== */
+        .stars-container { display: flex; justify-content: center; gap: 6px; margin: 10px 0; }
+        .star { font-size: 28px; color: #e2e8f0; }
+        .star.earned { color: #fbbf24; animation: starSpin 0.5s ease forwards; }
+        .notification {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
+            background: var(--card); padding: 12px 18px; border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 10px;
+            z-index: 200; transition: transform 0.3s ease; max-width: 90%; border-left: 4px solid var(--primary);
+        }
+        .notification.show { transform: translateX(-50%) translateY(0); }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+        .stat-card { background: var(--card); border-radius: var(--radius-sm); padding: 12px 6px; text-align: center; box-shadow: var(--shadow); border: 1px solid var(--border); }
+        .stat-value { font-size: 20px; font-weight: bold; color: var(--primary); }
+        .stat-label { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+
+        /* ===== GRIDS & INPUTS ===== */
+        .badges-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .badge-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px; border-radius: var(--radius-sm); background: var(--card); border: 1px solid var(--border); }
+        .badge-item.earned { border-color: var(--secondary); background: #fffbeb; }
+        .badge-emoji { font-size: 24px; }
+        .badge-name { font-size: 9px; text-align: center; color: var(--text-light); }
+        .input-field { width: 100%; padding: 12px 16px; border: 2px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; font-family: inherit; transition: border-color 0.2s; margin-bottom: 12px; }
+        .input-field:focus { outline: none; border-color: var(--primary); }
+
+        /* ===== CHALLENGES & DESIGN MULTIPLATAFORMA ===== */
+        .math-problem { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border-radius: var(--radius); padding: 18px; margin-bottom: 16px; border: 2px dashed var(--info); }
+        .math-input-group { display: flex; gap: 8px; align-items: center; }
+        .math-input { flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: var(--radius-sm); font-size: 18px; text-align: center; font-weight: bold; font-family: inherit; }
+        .reading-card { background: var(--card); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); margin-bottom: 16px; border: 1px solid var(--border); }
+        .reading-tag { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-bottom: 8px; }
+        .reading-tag.short { background: #dbeafe; color: #1e40af; }
+        .reading-tag.long { background: #fce7f3; color: #9d174d; }
+        .timer-bar { height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; margin-bottom: 12px; }
+        .timer-fill { height: 100%; background: linear-gradient(90deg, var(--success), var(--secondary), var(--error)); width: 100%; transition: width 1s linear; }
+        .avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
+        .avatar-option { padding: 10px; border: 2px solid var(--border); border-radius: var(--radius-sm); text-align: center; cursor: pointer; transition: all 0.2s; font-size: 26px; }
+        .avatar-option:hover, .avatar-option.selected { border-color: var(--primary); background: #eef2ff; transform: scale(1.05); }
+        .category-card { display: flex; align-items: center; gap: 14px; padding: 16px; background: var(--card); border-radius: var(--radius); margin-bottom: 10px; border: 2px solid var(--border); cursor: pointer; transition: all 0.2s; }
+        .category-card:hover { transform: translateY(-2px); border-color: var(--primary); }
+        .category-icon { font-size: 32px; }
+        .category-info { flex: 1; }
+        .category-name { font-weight: bold; font-size: 15px; margin-bottom: 2px; }
+        .category-desc { font-size: 12px; color: var(--text-light); }
+        .xp-bar-container { background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 6px; }
+        .xp-bar { height: 100%; background: linear-gradient(90deg, #8b5cf6, #a78bfa); transition: width 0.5s ease; }
+        
+        /* ===== MEDIA QUERIES PARA RESPONSIVIDAD TOTAL ===== */
+        @media (max-width: 650px) {
+            .app-container { box-shadow: none; }
+            body { background: var(--bg); }
+        }
+        @media (max-width: 440px) {
+            html { font-size: 14px; }
+            .screen { padding: 14px; }
+            .content-text { font-size: 1.15rem; }
+            .avatar-option { font-size: 22px; padding: 6px; }
+            .badges-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        /* ===== UTILS ===== */
+        .text-center { text-align: center; }
+        .hidden { display: none !important; }
+        .w-full { width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- NOTIFICATIONS -->
+        <div id="notification" class="notification">
+            <span class="notification-icon" id="notif-icon">🔔</span>
+            <span class="notification-text" id="notif-text">¡Bienvenido!</span>
+        </div>
+        <div id="confetti-container" class="confetti-container"></div>
+
+        <!-- SCREEN: WELCOME -->
+        <div id="screen-welcome" class="screen active">
+            <div style="min-height: 85vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <div class="float" style="font-size: 64px; margin-bottom: 12px;">🧠</div>
+                <h1 style="font-size: 28px; font-weight: bold; text-align: center; margin-bottom: 4px; color: var(--primary);">BrainQuest</h1>
+                <p style="text-align: center; color: var(--text-light); margin-bottom: 24px; font-size: 14px;">Comprensión Lectora y Pensamiento Lógico-Matemático<br>6° Grado de Primaria</p>
+
+                <div class="card" style="width: 100%; max-width: 360px;">
+                    <p class="content-subtitle" style="margin-bottom: 8px;">¡Hola, Explorador!</p>
+                    <p style="text-align: center; color: var(--text-light); margin-bottom: 14px; font-size: 13px;">Elige tu avatar para comenzar tu aventura</p>
+                    <div class="avatar-grid" id="avatar-grid">
+                        <div class="avatar-option selected" data-avatar="🚀">🚀</div>
+                        <div class="avatar-option" data-avatar="🦄">🦄</div>
+                        <div class="avatar-option" data-avatar="🐉">🐉</div>
+                        <div class="avatar-option" data-avatar="🦊">🦊</div>
+                        <div class="avatar-option" data-avatar="🦁">🦁</div>
+                        <div class="avatar-option" data-avatar="🐼">🐼</div>
+                        <div class="avatar-option" data-avatar="🦉">🦉</div>
+                        <div class="avatar-option" data-avatar="🐢">🐢</div>
+                    </div>
+                    <input type="text" id="player-name" class="input-field" placeholder="Escribe tu nombre..." maxlength="15" style="text-align: center;">
+                    <button class="btn btn-primary" onclick="startApp()">🚀 ¡Comenzar Aventura!</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN: HOME / DASHBOARD -->
+        <div id="screen-home" class="screen">
+            <div class="app-header">
+                <div class="header-top">
+                    <div class="app-logo"><span id="user-avatar">🚀</span> BrainQuest</div>
+                    <div class="user-badge"><span id="user-stars">⭐ 0</span></div>
+                </div>
+                <div class="progress-bar-container"><div class="progress-bar" id="overall-progress" style="width: 0%"></div></div>
+                <div class="progress-info"><span id="user-name-display">Explorador</span><span id="level-display">Nivel 1</span></div>
+            </div>
+            <div style="padding-top: 14px;">
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-value" id="stat-streak">0</div><div class="stat-label">🔥 Racha</div></div>
+                    <div class="stat-card"><div class="stat-value" id="stat-points">0</div><div class="stat-label">💎 Puntos</div></div>
+                    <div class="stat-card"><div class="stat-value" id="stat-completed">0</div><div class="stat-label">✅ Hechos</div></div>
+                </div>
+                <div id="streak-banner" class="card card-gradient-3" style="display: none;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 32px;">🔥</span>
+                        <div>
+                            <div style="font-weight: bold; font-size: 15px;">¡Racha de <span id="streak-count">3</span> días!</div>
+                            <div style="font-size: 12px; opacity: 0.9;">Faltan <span id="streak-next">50</span> puntos para subir de nivel</div>
+                        </div>
+                    </div>
+                </div>
+                <p style="font-weight: bold; font-size: 14px; margin-bottom: 10px; color: var(--text-light);">📚 Elige tu desafío</p>
+                <div class="category-card" onclick="openCategory('reading')">
+                    <span class="category-icon">📖</span>
+                    <div class="category-info"><div class="category-name">Comprensión Lectora</div><div class="category-desc">Lecturas de ciencia ficción, misterio y datos curiosos</div></div>
+                </div>
+                <div class="category-card" onclick="openCategory('math')">
+                    <span class="category-icon">🧮</span>
+                    <div class="category-info"><div class="category-name">Pensamiento Lógico-Matemático</div><div class="category-desc">Problemas de la vida real con operaciones complejas</div></div>
+                </div>
+                <div class="category-card" onclick="showScreen('screen-progress')">
+                    <span class="category-icon">🏆</span>
+                    <div class="category-info"><div class="category-name">Mi Progreso y Logros</div><div class="category-desc">Revisa tus medallas, niveles y estadísticas</div></div>
+                </div>
+                <div class="card card-gradient" style="margin-top: 6px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 32px;">🎯</span>
+                        <div style="flex: 1;"><div style="font-weight: bold; font-size: 15px;">Desafío del Día</div><div style="font-size: 12px; opacity: 0.9;">Completa 3 retos para tu medalla diaria</div></div>
+                        <button class="btn btn-small" style="background: rgba(255,255,255,0.2); color: white;" onclick="openCategory('reading')">¡Ir!</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN: LEVELS LIST -->
+        <div id="screen-levels" class="screen">
+            <div class="app-header">
+                <div class="header-top">
+                    <button class="btn btn-ghost btn-small" style="color:white; background:rgba(255,255,255,0.15);" onclick="showScreen('screen-home')">← Volver</button>
+                    <div class="app-logo"><span id="levels-title-icon">📖</span> <span id="levels-title-text">Niveles</span></div>
+                    <div style="width: 50px;"></div>
+                </div>
+            </div>
+            <div style="padding-top: 16px;">
+                <p class="content-subtitle" id="levels-subtitle">Mapa de Aventuras</p>
+                <div class="level-map" id="levels-map-container"></div>
+            </div>
+        </div>
+
+        <!-- SCREEN: READING QUIZ -->
+        <div id="screen-reading-quiz" class="screen">
+            <div class="app-header">
+                <div class="header-top">
+                    <button class="btn btn-ghost btn-small" style="color:white; background:rgba(255,255,255,0.15);" onclick="showScreen('screen-levels')">← Volver</button>
+                    <div class="app-logo"><span>📖</span> Lectura</div>
+                    <div class="user-badge" id="quiz-streak">🔥 0</div>
+                </div>
+                <div class="timer-bar"><div class="timer-fill" id="reading-timer"></div></div>
+            </div>
+            <div style="padding-top: 14px;">
+                <div class="reading-card">
+                    <span class="reading-tag short" id="reading-tag">Corta</span>
+                    <p class="content-title" id="reading-title">Título</p>
+                    <div class="content-text" id="reading-text"></div>
+                </div>
+                <div id="reading-questions-container">
+                    <h3 style="margin-bottom: 10px; font-size: 16px;" id="reading-question-text"></h3>
+                    <div id="reading-options"></div>
+                </div>
+                <button class="btn btn-primary" id="reading-submit" onclick="submitReadingAnswer()" disabled>✅ Verificar Respuesta</button>
+            </div>
+        </div>
+
+        <!-- SCREEN: MATH QUIZ -->
+        <div id="screen-math-quiz" class="screen">
+            <div class="app-header">
+                <div class="header-top">
+                    <button class="btn btn-ghost btn-small" style="color:white; background:rgba(255,255,255,0.15);" onclick="showScreen('screen-levels')">← Volver</button>
+                    <div class="app-logo"><span>🧮</span> Matemáticas</div>
+                    <div class="user-badge" id="math-streak">🔥 0</div>
+                </div>
+                <div class="timer-bar"><div class="timer-fill" id="math-timer"></div></div>
+            </div>
+            <div style="padding-top: 14px;">
+                <div class="math-problem">
+                    <p class="content-title" id="math-title">Problema</p>
+                    <div class="content-text" id="math-text" style="margin-bottom:14px;"></div>
+                    <div class="math-input-group">
+                        <input type="number" step="any" id="math-answer" class="math-input" placeholder="?">
+                        <button class="btn btn-primary" style="width: auto; margin-bottom:0;" onclick="submitMathAnswer()">🚀 Resolver</button>
+                    </div>
+                </div>
+                <div id="math-hint-area" style="display: none;" class="card" style="background:#fef3c7; border-color:var(--secondary);">
+                    <p style="font-weight: bold; margin-bottom: 4px;">💡 Pista:</p>
+                    <p id="math-hint-text" style="font-size:13px;"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN: PROGRESS -->
+        <div id="screen-progress" class="screen">
+            <div class="app-header">
+                <div class="header-top">
+                    <button class="btn btn-ghost btn-small" style="color:white; background:rgba(255,255,255,0.15);" onclick="showScreen('screen-home')">← Volver</button>
+                    <div class="app-logo"><span>🏆</span> Mi Progreso</div>
+                    <div style="width: 50px;"></div>
+                </div>
+            </div>
+            <div style="padding-top: 14px;">
+                <div class="card">
+                    <p class="content-subtitle">Progreso General</p>
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        <div style="font-size: 36px;">📊</div>
+                        <div style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; font-size:13px;">
+                                <span style="font-weight: bold;">Rango: <span id="progress-level">Explorador</span></span>
+                                <span style="color: var(--text-light);"><span id="progress-xp">0</span> XP</span>
+                            </div>
+                            <div class="xp-bar-container"><div class="xp-bar" id="progress-xp-bar" style="width: 0%"></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <p class="content-subtitle">🏅 Medallas Ganadas</p>
+                    <div class="badges-grid" id="badges-grid">
+                        <div class="badge-item earned"><span class="badge-emoji">🚀</span><span class="badge-name">Inicio</span></div>
+                        <div class="badge-item"><span class="badge-emoji">📖</span><span class="badge-name">Lector</span></div>
+                        <div class="badge-item"><span class="badge-emoji">🧮</span><span class="badge-name">Lógico</span></div>
+                        <div class="badge-item"><span class="badge-emoji">🔥</span><span class="badge-name">Racha x3</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FEEDBACK MODAL -->
+        <div id="feedback-overlay" class="feedback-overlay">
+            <div class="feedback-modal fade-in">
+                <div class="feedback-icon" id="feedback-icon">🎉</div>
+                <div class="feedback-title" id="feedback-title">¡Correcto!</div>
+                <div class="stars-container" id="feedback-stars"></div>
+                <div class="feedback-message" id="feedback-message">Texto</div>
+                <div id="feedback-hint-area-modal" class="feedback-hint" style="display: none;"></div>
+                <div id="feedback-extra-area" class="feedback-extra" style="display: none;"></div>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button class="btn btn-primary" id="btn-continue" onclick="continueQuiz()">▶️ Continuar</button>
+                    <button class="btn btn-outline" id="feedback-retry" onclick="retryQuestion()" style="display: none;">🔄 Reintentar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== BASES DE DATOS AMPLIADAS =====
+        const readingData = {
+            basic: [
+                { id: 'r1', title: 'El Misterio del Reloj del Abuelo', type: 'short', tag: 'Misterio', text: 'En el ático de la casa de mi abuelo había un reloj antiguo que nunca funcionaba. Un día, mientras limpiaba, descubrí una pequeña llave dorada escondida detrás del reloj. Cuando la giré, el reloj comenzó a marcar las doce, y las puertas del armario de al lado se abrieron solas. Dentro había un diario escrito en 1923 que contaba la historia de un tesoro escondido en el jardín.', questions: [
+                    { q: '¿Dónde encontró el narrador la llave dorada?', options: ['En el jardín', 'Detrás del reloj del ático', 'Dentro del armario', 'En el diario'], correct: 1, explanation: 'El texto dice: "descubrí una pequeña llave dorada escondida detrás del reloj".', extra: '💡 Compartimento secreto: Los relojes antiguos solían tener escondites para objetos valiosos.' }
+                ]},
+                { id: 'r2', title: 'El Planeta de los Colores', type: 'short', tag: 'Ciencia Ficción', text: 'Los astronautas del Equipo Alfa aterrizaron en el planeta Cromática, donde todo era de colores imposibles. El cielo era verde menta, los árboles tenían hojas azul eléctrico y el suelo brillaba en tonos dorados. Lo más sorprendente fue descubrir que los habitantes del planeta, seres translúcidos llamados Luminos, se comunicaban cambiando de color según sus emociones. Cuando estaban felices, brillaban en amarillo solar; cuando tristes, en azul profundo.', questions: [
+                    { q: '¿De qué color brillaban los Luminos cuando estaban felices?', options: ['Azul profundo', 'Verde menta', 'Amarillo solar', 'Dorado'], correct: 2, explanation: 'El texto indica: "Cuando estaban felices, brillaban en amarillo solar".', extra: '☀️ Cromatología: El amarillo suele asociarse con la alegría y la energía en muchas culturas humanas.' }
+                ]},
+                { id: 'r3', title: 'El Gran Invento', type: 'short', tag: 'Historia', text: 'Johannes Gutenberg no inventó la imprenta desde cero, pero su gran aporte alrededor del año 1440 fue crear los tipos móviles metálicos. Antes, los libros se copiaban a mano, lo que tomaba años. Con los pequeños moldes de letras de plomo que se podían reordenar y entintar, un libro podía imprimirse cientos de veces en semanas.', questions: [
+                    { q: '¿Cuál fue la gran innovación de Gutenberg?', options: ['Inventar la tinta', 'Copiar libros a mano más rápido', 'Crear los tipos móviles de metal', 'Inventar el papel'], correct: 2, explanation: 'El texto afirma que su gran aporte fue "crear los tipos móviles metálicos".', extra: '📖 Este invento democratizó el conocimiento en toda Europa, iniciando el Renacimiento.' }
+                ]}
+            ],
+            intermediate: [
+                { id: 'r4', title: 'El Enigma de las Líneas de Nazca', type: 'long', tag: 'Historia', text: 'En el árido desierto del sur de Perú, existen enormes figuras trazadas en el suelo que solo pueden verse completas desde el aire. Estas son las Líneas de Nazca. Fueron creadas por la cultura Nazca entre los años 500 a.C. y 500 d.C. retirando las rocas oscuras de la superficie para exponer la arena clara debajo. Algunas figuras miden hasta 300 metros. Aunque muchos creen que eran calendarios astronómicos, estudios recientes sugieren que estaban vinculadas a rituales para pedir agua a los dioses, dado que la región es una de las más secas del mundo.', questions: [
+                    { q: '¿Cómo crearon los Nazcas estas enormes líneas?', options: ['Pintando la arena con minerales', 'Retirando rocas oscuras para mostrar arena clara', 'Cavando profundos canales de agua', 'Usando moldes gigantes de arcilla'], correct: 1, explanation: 'El texto explica que las crearon "retirando las rocas oscuras de la superficie para exponer la arena clara debajo".', extra: '🏜️ El clima extremadamente seco y sin viento de la zona ha permitido que estas líneas se conserven miles de años.' }
+                ]},
+                { id: 'r5', title: 'La Ciudad Submarina', type: 'long', tag: 'Ciencia Ficción', text: 'En el año 2145, Nueva Atlántida era la joya del océano Pacífico. Construida dentro de un domo de cristal a 500 metros de profundidad, albergaba a científicos que estudiaban la vida bioluminiscente marina. El problema comenzó cuando el núcleo de energía geotérmica que alimentaba el domo empezó a fallar. Sin esa energía, los filtros de oxígeno se detendrían en 12 horas. La joven ingeniera, Lía, tuvo que salir en un traje presurizado y reparar la válvula exterior soportando la tremenda presión oceánica.', questions: [
+                    { q: '¿Qué sucedería si el núcleo de energía fallaba por completo?', options: ['El domo se rompería por la presión', 'Los filtros de oxígeno se detendrían', 'Los animales marinos entrarían a la ciudad', 'La ciudad flotaría hacia la superficie'], correct: 1, explanation: 'El texto detalla: "Sin esa energía, los filtros de oxígeno se detendrían en 12 horas".', extra: '🌊 La presión a 500 metros de profundidad es 50 veces mayor que en la superficie.' }
+                ]}
+            ],
+            advanced: [
+                { id: 'r6', title: 'El Secreto del ADN', type: 'long', tag: 'Ciencias', text: 'El ADN (Ácido Desoxirribonucleico) es el manual de instrucciones de todos los seres vivos. Está formado por una doble hélice compuesta por cuatro bases nitrogenadas: Adenina (A), Timina (T), Citosina (C) y Guanina (G). La regla estricta es que la A siempre se une con la T, y la C con la G. Si desenrolláramos el ADN de una sola de tus células, mediría aproximadamente 2 metros. Sin embargo, está tan compactado dentro del núcleo celular que es microscópico. Lo asombroso es que el 99.9% de nuestro ADN es idéntico al de cualquier otro humano; lo que nos hace únicos reside en ese pequeño 0.1%.', questions: [
+                    { q: '¿Por qué somos físicamente diferentes si compartimos casi todo el ADN?', options: ['Porque tenemos diferentes bases nitrogenadas', 'Por el 0.1% de ADN que varía entre personas', 'Porque nuestro ADN mide diferente', 'Porque algunas personas no tienen Timina'], correct: 1, explanation: 'El texto afirma: "lo que nos hace únicos reside en ese pequeño 0.1%".', extra: '🧬 Esa diminuta fracción representa unos 3 millones de diferencias en las bases que determinan tu color de ojos, altura y más.' }
+                ]}
+            ]
+        };
+
+        const mathData = {
+            basic: [
+                { id: 'm1', title: 'La Tienda de Mascotas', text: 'En la tienda de don Luis hay 4 peceras. Cada pecera tiene 15 peces dorados y 5 peces cebra. ¿Cuántos peces hay en total en la tienda?', answer: 80, hint: 'Primero suma los peces que hay en una sola pecera, y luego multiplica ese resultado por el total de peceras.', explanation: '15 + 5 = 20 peces por pecera. 20 peces x 4 peceras = 80 peces.' },
+                { id: 'm2', title: 'El Viaje Espacial', text: 'Una nave espacial viaja a 3,000 km por hora. Si necesita llegar a una estación que está a 15,000 km de distancia, ¿cuántas horas tardará el viaje?', answer: 5, hint: 'Divide la distancia total entre la velocidad por hora (15,000 ÷ 3,000).', explanation: 'Para hallar el tiempo, dividimos la distancia entre la velocidad: 15,000 / 3,000 = 5 horas.' }
+            ],
+            intermediate: [
+                { id: 'm3', title: 'El Tesoro del Pirata', text: 'El Capitán Barba Roja encontró un cofre con 1,200 monedas de oro. Decidió repartirlas: se quedó con el 50% para él, le dio el 25% al contramaestre, y el resto lo guardó para el barco. ¿Cuántas monedas guardó para el barco?', answer: 300, hint: 'Si suma 50% + 25% = 75%. El resto es 25%. Calcula el 25% de 1200 (divide entre 4).', explanation: 'El barco recibe el 25% del tesoro (100% - 50% - 25%). El 25% es una cuarta parte. 1200 ÷ 4 = 300 monedas.' },
+                { id: 'm4', title: 'La Receta Mágica', text: 'Para hacer 4 porciones de una poción mágica se necesitan 12 gramos de polvo de estrella. Si el mago quiere hacer 10 porciones para todos sus amigos, ¿cuántos gramos de polvo de estrella necesita?', answer: 30, hint: 'Usa una regla de tres, o primero descubre cuánto se necesita para 1 sola porción (12 ÷ 4).', explanation: '1 porción necesita 3 gramos (12 ÷ 4 = 3). Para 10 porciones: 10 x 3 = 30 gramos.' }
+            ],
+            advanced: [
+                { id: 'm5', title: 'El Arquitecto del Futuro', text: 'Se está construyendo un parque rectangular que mide 40 metros de largo por 25 metros de ancho. En el centro exacto se construirá una piscina cuadrada de 10 metros de lado. ¿Cuál será el área restante del parque (en metros cuadrados) que estará cubierta de pasto?', answer: 900, hint: 'Calcula el área total del rectángulo (largo x ancho). Luego calcula el área del cuadrado (lado x lado). Réstale el área de la piscina al área total.', explanation: 'Área total: 40 x 25 = 1000 m². Área piscina: 10 x 10 = 100 m². Pasto: 1000 - 100 = 900 m².' },
+                { id: 'm6', title: 'Código Secreto', text: 'Descifra el siguiente número en la secuencia lógica para abrir la caja fuerte: 2, 6, 12, 20, 30, ___', answer: 42, hint: 'Fíjate en la diferencia entre cada número: de 2 a 6 hay +4, de 6 a 12 hay +6, de 12 a 20 hay +8... ¿Qué sigue?', explanation: 'La secuencia suma números pares crecientes: +4, +6, +8, +10. Por lo tanto, al 30 hay que sumarle 12. 30 + 12 = 42.' }
+            ]
+        };
+
+        // ===== LÓGICA DE USUARIO Y ESTADO =====
+        let userState = {
+            name: 'Explorador',
+            avatar: '🚀',
+            xp: 0,
+            level: 1,
+            stars: 0,
+            streak: 1,
+            completed: []
+        };
+        
+        let currentChallenge = null;
+        let currentCategory = '';
+
+        // ===== INICIALIZACIÓN =====
+        document.querySelectorAll('.avatar-option').forEach(el => {
+            el.addEventListener('click', function() {
+                document.querySelectorAll('.avatar-option').forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                userState.avatar = this.getAttribute('data-avatar');
+            });
+        });
+
+        function startApp() {
+            const nameInput = document.getElementById('player-name').value.trim();
+            if(nameInput) userState.name = nameInput;
+            
+            updateUI();
+            
+            document.getElementById('screen-welcome').classList.remove('active');
+            document.getElementById('screen-home').classList.add('active');
+            showNotification(`¡Bienvenido, ${userState.name}!`);
+        }
+
+        function updateUI() {
+            document.getElementById('user-avatar').textContent = userState.avatar;
+            document.getElementById('user-name-display').textContent = userState.name;
+            document.getElementById('user-stars').textContent = `⭐ ${userState.stars}`;
+            document.getElementById('stat-points').textContent = userState.xp;
+            document.getElementById('stat-completed').textContent = userState.completed.length;
+            document.getElementById('stat-streak').textContent = userState.streak;
+            document.getElementById('progress-xp').textContent = userState.xp;
+            document.getElementById('progress-level').textContent = `Nivel ${userState.level}`;
+            document.getElementById('level-display').textContent = `Nivel ${userState.level}`;
+            
+            let progressPercent = Math.min((userState.xp % 100), 100);
+            document.getElementById('overall-progress').style.width = `${progressPercent}%`;
+            document.getElementById('progress-xp-bar').style.width = `${progressPercent}%`;
+        }
+
+        function showNotification(text, icon = '🔔') {
+            const notif = document.getElementById('notification');
+            document.getElementById('notif-icon').textContent = icon;
+            document.getElementById('notif-text').textContent = text;
+            notif.classList.add('show');
+            setTimeout(() => { notif.classList.remove('show'); }, 3000);
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            window.scrollTo(0,0);
+        }
+
+        // ===== GENERACIÓN DE MAPA DE NIVELES =====
+        function openCategory(cat) {
+            currentCategory = cat;
+            const container = document.getElementById('levels-map-container');
+            container.innerHTML = '';
+            
+            const titles = { 'reading': 'Comprensión Lectora', 'math': 'Lógico-Matemático' };
+            const icons = { 'reading': '📖', 'math': '🧮' };
+            
+            document.getElementById('levels-title-text').textContent = titles[cat];
+            document.getElementById('levels-title-icon').textContent = icons[cat];
+            
+            const db = cat === 'reading' ? readingData : mathData;
+            
+            // Generar lista combinada
+            let levelIndex = 1;
+            ['basic', 'intermediate', 'advanced'].forEach(difficulty => {
+                db[difficulty].forEach(item => {
+                    const isCompleted = userState.completed.includes(item.id);
+                    const isLocked = !isCompleted && levelIndex > (userState.completed.length + 1); // Bloqueo simple
+                    
+                    const node = document.createElement('div');
+                    node.className = `level-node ${isCompleted ? 'completed' : (isLocked ? 'locked' : 'unlocked')}`;
+                    
+                    let iconClass = difficulty;
+                    let diffLabel = difficulty === 'basic' ? 'Básico' : (difficulty === 'intermediate' ? 'Intermedio' : 'Avanzado');
+                    
+                    node.innerHTML = `
+                        <div class="level-icon ${iconClass}">${isLocked ? '🔒' : (isCompleted ? '⭐' : icons[cat])}</div>
+                        <div class="level-info">
+                            <div class="level-name">Nivel ${levelIndex}: ${item.title}</div>
+                            <div class="level-desc">${diffLabel}</div>
+                        </div>
+                        <div class="level-status">${isCompleted ? '✅' : '▶️'}</div>
+                    `;
+                    
+                    if(!isLocked) {
+                        node.onclick = () => loadLevel(cat, difficulty, item.id);
+                    } else {
+                        node.onclick = () => showNotification('Completa niveles anteriores para desbloquear', '🔒');
+                    }
+                    
+                    container.appendChild(node);
+                    levelIndex++;
+                });
+            });
+            
+            showScreen('screen-levels');
+        }
+
+        // ===== CARGAR DESAFÍOS =====
+        function loadLevel(cat, diff, id) {
+            const db = cat === 'reading' ? readingData : mathData;
+            currentChallenge = db[diff].find(i => i.id === id);
+            
+            if(cat === 'reading') {
+                document.getElementById('reading-title').textContent = currentChallenge.title;
+                document.getElementById('reading-text').textContent = currentChallenge.text;
+                document.getElementById('reading-tag').textContent = currentChallenge.tag;
+                
+                // Cargar primera pregunta (por simplicidad, este ejemplo usa 1 pregunta por desafío)
+                const q = currentChallenge.questions[0];
+                document.getElementById('reading-question-text').textContent = q.q;
+                
+                const optsContainer = document.getElementById('reading-options');
+                optsContainer.innerHTML = '';
+                const letters = ['A', 'B', 'C', 'D'];
+                
+                q.options.forEach((opt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.innerHTML = `<span class="option-letter">${letters[idx]}</span> ${opt}`;
+                    btn.onclick = function() {
+                        document.querySelectorAll('#reading-options .option-btn').forEach(b => b.classList.remove('selected'));
+                        this.classList.add('selected');
+                        document.getElementById('reading-submit').disabled = false;
+                        document.getElementById('reading-submit').setAttribute('data-selected', idx);
+                    };
+                    optsContainer.appendChild(btn);
+                });
+                
+                document.getElementById('reading-submit').disabled = true;
+                showScreen('screen-reading-quiz');
+            } else {
+                document.getElementById('math-title').textContent = currentChallenge.title;
+                document.getElementById('math-text').textContent = currentChallenge.text;
+                document.getElementById('math-answer').value = '';
+                document.getElementById('math-hint-area').style.display = 'none';
+                document.getElementById('math-hint-text').textContent = currentChallenge.hint;
+                
+                showScreen('screen-math-quiz');
+            }
+        }
+
+        // ===== VALIDACIÓN Y FEEDBACK =====
+        function submitReadingAnswer() {
+            const selectedIdx = parseInt(document.getElementById('reading-submit').getAttribute('data-selected'));
+            const question = currentChallenge.questions[0];
+            
+            const options = document.querySelectorAll('#reading-options .option-btn');
+            options.forEach(opt => { opt.disabled = true; opt.onclick = null; });
+            
+            if(selectedIdx === question.correct) {
+                options[selectedIdx].classList.add('correct');
+                setTimeout(() => showFeedback(true, question.explanation, question.extra), 800);
+            } else {
+                options[selectedIdx].classList.add('wrong');
+                options[question.correct].classList.add('correct');
+                setTimeout(() => showFeedback(false, `La respuesta correcta era la opción. ${question.explanation}`, question.extra), 1000);
+            }
+        }
+
+        function submitMathAnswer() {
+            const userInput = parseFloat(document.getElementById('math-answer').value);
+            if(isNaN(userInput)) {
+                showNotification('Por favor, ingresa un número', '⚠️');
+                return;
+            }
+            
+            if(userInput === currentChallenge.answer) {
+                showFeedback(true, currentChallenge.explanation, '¡Gran cálculo matemático!');
+            } else {
+                document.getElementById('math-hint-area').style.display = 'block';
+                showNotification('Respuesta incorrecta. ¡Usa la pista e inténtalo de nuevo!', '❌');
+            }
+        }
+
+        function showFeedback(isCorrect, message, extra) {
+            const overlay = document.getElementById('feedback-overlay');
+            overlay.classList.add('active');
+            
+            if(isCorrect) {
+                document.getElementById('feedback-icon').textContent = '🎉';
+                document.getElementById('feedback-title').textContent = '¡Correcto!';
+                document.getElementById('feedback-title').style.color = 'var(--success)';
+                document.getElementById('feedback-stars').innerHTML = '<span class="star earned">⭐</span><span class="star earned" style="animation-delay:0.1s">⭐</span><span class="star earned" style="animation-delay:0.2s">⭐</span>';
+                document.getElementById('feedback-retry').style.display = 'none';
+                document.getElementById('btn-continue').style.display = 'block';
+                
+                // Actualizar estado del usuario
+                if(!userState.completed.includes(currentChallenge.id)) {
+                    userState.completed.push(currentChallenge.id);
+                    userState.xp += 25;
+                    userState.stars += 3;
+                    if(userState.xp >= userState.level * 100) {
+                        userState.level++;
+                        setTimeout(() => triggerConfetti(), 500);
+                        showNotification('¡Subiste de Nivel!', '🌟');
+                    }
+                    updateUI();
+                }
+            } else {
+                document.getElementById('feedback-icon').textContent = '💡';
+                document.getElementById('feedback-title').textContent = 'Casi lo logras';
+                document.getElementById('feedback-title').style.color = 'var(--secondary)';
+                document.getElementById('feedback-stars').innerHTML = '';
+                document.getElementById('btn-continue').style.display = 'none';
+                document.getElementById('feedback-retry').style.display = 'block';
+            }
+            
+            document.getElementById('feedback-message').textContent = message;
+            
+            if(extra) {
+                document.getElementById('feedback-extra-area').style.display = 'block';
+                document.getElementById('feedback-extra-area').textContent = extra;
+            } else {
+                document.getElementById('feedback-extra-area').style.display = 'none';
+            }
+        }
+
+        function retryQuestion() {
+            document.getElementById('feedback-overlay').classList.remove('active');
+            // Si es lectura, hay que recargar la vista entera para limpiar estilos
+            if(currentCategory === 'reading') {
+                loadLevel('reading', currentChallenge.type === 'short' ? 'basic' : 'advanced', currentChallenge.id); // Lógica simple para recargar
+            } else {
+                document.getElementById('math-answer').value = '';
+            }
+        }
+
+        function continueQuiz() {
+            document.getElementById('feedback-overlay').classList.remove('active');
+            openCategory(currentCategory); // Vuelve al mapa de niveles actualizado
+        }
+
+        // ===== EFECTOS VISUALES =====
+        function triggerConfetti() {
+            const container = document.getElementById('confetti-container');
+            const colors = ['#f59e0b', '#10b981', '#3b82f6', '#ef4444', '#8b5cf6'];
+            
+            for(let i=0; i<50; i++) {
+                const conf = document.createElement('div');
+                conf.className = 'confetti-piece';
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                conf.style.animationDelay = Math.random() * 0.5 + 's';
+                container.appendChild(conf);
+            }
+            
+            setTimeout(() => { container.innerHTML = ''; }, 3000);
+        }
+    </script>
+</body>
+</html>
